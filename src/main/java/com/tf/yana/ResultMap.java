@@ -1,4 +1,4 @@
-package com.tf.yana.javatpoint;
+package com.tf.yana;
 
 import java.util.Map;
 

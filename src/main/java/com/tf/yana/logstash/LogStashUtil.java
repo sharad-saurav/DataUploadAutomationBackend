@@ -21,24 +21,27 @@ public class LogStashUtil {
 		String errorMessage = "";
 		try
 		{
-			ProcessBuilder builder = new ProcessBuilder(
-	            "cmd.exe", "/c", 
-	            "logstash -f "+ configFileName);
+			
+			ProcessBuilder builder = new ProcessBuilder("bash", "-c", "logstash -f "+ configFileName);
+			
 	        builder.redirectErrorStream(true);
 	        Process p = builder.start();
+	        
 	        BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
 	        String line;
 	        
 	        while (true) {
 	            line = r.readLine();
+	           
 	            if (line == null) { break; }
-	            System.out.println(line);
+	           
 	            if(line.contains("Failed to execute"))
 	            {
 	            	errorMessage = line;
 	            }
 	        }
 	        
+	        p.waitFor();
 	        System.out.println("command exit value::" + p.exitValue());
 		}
 		catch(Exception ex)
@@ -55,8 +58,9 @@ public class LogStashUtil {
 		String errorMessage = "";
 		try
 		{
+			
 			ProcessBuilder builder = new ProcessBuilder(
-	            "cmd.exe", "/c", 
+				"bash", "-c", 
 	            "logstash -e "+ configString);
 	        builder.redirectErrorStream(true);
 	        Process p = builder.start();
@@ -65,22 +69,24 @@ public class LogStashUtil {
 	        
 	        while (true) {
 	            line = r.readLine();
+	           
 	            if (line == null) { break; }
-	            System.out.println(line);
+	            
 	            if(line.contains("Failed to execute"))
 	            {
+	         
 	            	errorMessage = line;
 	            }
 	        }
 	        
-	        System.out.println("command exit value::" + p.exitValue());
+	        System.out.println("command exit value:::" + p.exitValue());
 		}
 		catch(Exception ex)
 		{
 			ex.printStackTrace();
 			throw new DataUploadException("Upload Data Failed");
 		}
-		
+		System.out.println("errorMessage------" + errorMessage);
 		return errorMessage;
 	}
 

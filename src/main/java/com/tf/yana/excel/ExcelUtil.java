@@ -24,6 +24,7 @@ import org.apache.poi.ss.usermodel.Row.MissingCellPolicy;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import com.tf.yana.PathVariables;
 import com.tf.yana.excel.model.ColumnDefinition;
 import com.tf.yana.excel.model.ExcelHeadingAndColumn;
 import com.tf.yana.excel.model.MessageFormatTemplate;
@@ -38,8 +39,9 @@ public class ExcelUtil {
 		ArrayList<String> valuesList = null;
 		ExcelHeadingAndColumn headingAndValueList = new ExcelHeadingAndColumn();
 		try {
+			System.out.println("Files.newInputStream(Paths.get(fileName)------------" + fileName +"--"+ Paths.get(fileName));
 			wb = new XSSFWorkbook(Files.newInputStream(Paths.get(fileName), StandardOpenOption.READ));
-
+			System.out.println("hello------------------------------------------------------------");
 			Sheet sheet = wb.getSheetAt(0);
 			valuesList = new ArrayList<String>();
 
@@ -405,34 +407,49 @@ public class ExcelUtil {
 	public static String readConfig(String configParam, int sheetNum) throws DataUploadException {
 		String masterTableQuery = "";
 		try {
+			String filePathHome = PathVariables.pathOfConfig;
 			// String dataFilePathPrefix = "\\config\\mysql_queries.xlsx";
 			// String filePathHome = "D:\\Yana\\Data-Upload-master" + dataFilePathPrefix;
-			String filePathHome = System.getenv("DATA_UPLOAD_CONFIG_FILE");
+//			String filePathHome = System.getenv("DATA_UPLOAD_CONFIG_FILE");
 			// String filePathHome = "D:\\Yana\\Data-Upload\\config\\configuration.xlsx";
 			if (StringUtils.isEmpty(filePathHome)) {
 				throw new DataUploadException("Please set up system variable DATA_UPLOAD_CONFIG_FILE");
 			}
+			System.out.println("filePathHome    =====" + filePathHome);
 			File file = new File(filePathHome);
 			FileInputStream fs = new FileInputStream(file);
 			XSSFWorkbook wb = new XSSFWorkbook(fs);
 			XSSFSheet sh = wb.getSheetAt(sheetNum);
 			Iterator<Row> ite = sh.rowIterator();
-
+			
 			while (ite.hasNext()) {
+				
 				Row row = ite.next();
 				Iterator<Cell> cite = row.cellIterator();
+				
 				while (cite.hasNext()) {
 					Cell c = cite.next();
-					if (c.toString().toUpperCase().equalsIgnoreCase(configParam)) {
-						masterTableQuery = cite.next().toString();
-						break;
+					
+					if(configParam != "DATA_FILE_PATH") {
+						
+						if (c.toString().toUpperCase().equalsIgnoreCase(configParam)) {
+							
+							masterTableQuery = cite.next().toString();
+//							System.out.println("filePathHome7--------------------------" + masterTableQuery +"---"+ configParam);
+							break;
+						}
+					}else {
+//						System.out.println("filePathHome8--------------------------" + masterTableQuery +"---"+ configParam);
+						masterTableQuery = PathVariables.pathOfData;
 					}
+					
 				}
 			}
 			fs.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			// } catch (NoSuchElementException e) {
+			System.out.println("read configuration failed");
 			throw new DataUploadException("read configuration failed");
 		}
 		if (masterTableQuery.isEmpty()) {

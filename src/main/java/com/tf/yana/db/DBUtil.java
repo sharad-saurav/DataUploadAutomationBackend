@@ -51,10 +51,11 @@ public class DBUtil {
 				String schemaName = ExcelUtil.readConfig("DBSCHEMA_NAME", sheetNum);
 
 				Class.forName("com.mysql.jdbc.Driver").newInstance();
+				System.out.println("here here here----------------------");
 				con = DriverManager.getConnection(
 						dbUrl + "?useSSL=false&useUnicode=yes&characterEncoding=UTF-8&characterSetResults=UTF-8",
 						dbUsername, dbPassword);
-
+				System.out.println("hit here pls----------------");
 				con.setAutoCommit(false);
 
 				schemaExist = schemaExist(con, schemaName);
@@ -329,7 +330,6 @@ public class DBUtil {
 			}
 			return numOfRecordsInserted;
 		} catch (DataUploadException err) {
-			System.out.println("hit error---------------------------------------------------------2");
 			throw err;
 		}
 	}

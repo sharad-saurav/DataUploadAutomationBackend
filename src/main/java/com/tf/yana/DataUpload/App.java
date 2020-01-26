@@ -3,17 +3,20 @@ package com.tf.yana.DataUpload;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import com.tf.yana.PathVariables;
+import com.tf.yana.ResultMap;
 import com.tf.yana.db.DBUtil;
 import com.tf.yana.excel.ExcelUtil;
 import com.tf.yana.excel.model.MessageFormatTemplate;
 import com.tf.yana.exception.DataUploadException;
-import com.tf.yana.javatpoint.ResultMap;
 import com.tf.yana.logstash.LogStashUtil;
 import com.tf.yana.elasticsearch.ElasticDumpUtil;
 import com.tf.yana.elasticsearch.EslaticsearchUtil;
@@ -35,9 +38,14 @@ public class App implements Constants {
 			
 
 			filePathHome = ExcelUtil.readConfig("DATA_FILE_PATH", 0);
+			
 			File dir = new File(filePathHome);
+			
 			directoryListing = dir.listFiles();
-
+			
+			Path currentRelativePath = Paths.get("");
+			String s = currentRelativePath.toAbsolutePath().toString();
+			
 			System.out.println("Excel files upload starting");
 			Map<String, Integer> results = uploadFilesInDirectioryToDB();
 			System.out.println("Excel file upload finished");
@@ -56,7 +64,6 @@ public class App implements Constants {
 			System.out.println("Process Execution time in seconds: " + seconds);
 			return rsMap;
 		} catch (DataUploadException err) {
-			System.out.println("hit error---------------------------------------------------------11");
 			throw err;
 		}
 	}
@@ -77,7 +84,7 @@ public class App implements Constants {
 			columnsToFormat.put("MEDIA", msgFormatTemplate);
 
 			HashSet<String> subjectAreaSet = new HashSet<String>();
-
+			
 			if (directoryListing != null) {
 				for (File child : directoryListing) {
 
@@ -104,7 +111,6 @@ public class App implements Constants {
 			return results;
 
 		} catch (DataUploadException err) {
-			System.out.println("hit error---------------------------------------------------------12");
 			throw err;
 		}
 	}
@@ -118,9 +124,14 @@ public class App implements Constants {
 			Map<String, String> esResults = new HashMap<String, String>();
 
 			if (esConnectTestCode == 200) {
+				
+				
+				
 				Map<String, String> logStashConfigData = ExcelUtil
-						.getTwoColumnRowDataAsMap(System.getenv("DATA_UPLOAD_CONFIG_FILE"), 2);
+						.getTwoColumnRowDataAsMap(PathVariables.pathOfConfig, 2);
 
+				
+				
 				String parentDirectory = null;
 
 				String connectionString = ExcelUtil.readConfig(Constants.DBURL, 0);
@@ -135,15 +146,21 @@ public class App implements Constants {
 				// String authorization = ExcelUtil.readConfig(Constants.AUTHORIZATION, 1);
 
 				String driverPath = ExcelUtil.readConfig(Constants.JDBC_DRIVER_LIBRARY, 2);
+				
+			
 
 				for (int i = 0; i < directoryListing.length; i++) {
 
 					if (parentDirectory == null) {
 						parentDirectory = directoryListing[i].getParent();
+						
+						
 					}
 
 					String propertyName = FilenameUtils
 							.removeExtension(FilenameUtils.getName(directoryListing[i].getName().toLowerCase()));
+					
+					
 
 					try {
 
@@ -169,21 +186,29 @@ public class App implements Constants {
 						propertyValue = propertyValue.replaceAll(Constants.LOCAL_ES_URL_REPLACE, esURL);
 
 						System.out.println(propertyName + "Property value after replacing constants::" + propertyValue);
-
-						String fileName = parentDirectory + "\\" + propertyName + ".conf";
+						
+						
+						
+						
+						String fileName = parentDirectory + File.separator + propertyName + ".conf";
+						
+						
+//						File configFile = new File(configDir + File.separator + "DataUploadConfig.xlsx");
+						
+						
 						FileWriter fileWriter = new FileWriter(fileName);
-
+						
 						fileWriter.write(propertyValue);
 						fileWriter.close();
 
-						System.out.println("Loading index mapping for ::" + propertyName);
+//						System.out.println("Loading index mapping for ::" + propertyName);
 						// EslaticsearchUtil.esMapping(propertyName);
 						EslaticsearchUtil.esMapping(esURL, esauth, propertyName);
 
 						System.out.println("loading data through logstash for index:" + propertyName);
 						String errorMessage = LogStashUtil.uploadData(fileName);
 						FileUtils.forceDelete(new File(fileName));
-						System.out.println("File deleted");
+					    System.out.println("File deleted");
 
 						if (!errorMessage.isEmpty()) {
 							System.out.println("ERROR: Could not upload data for index :" + propertyName);
