@@ -21,28 +21,30 @@ public class LogStashUtil {
 		String errorMessage = "";
 		try
 		{
-			
+			System.out.println("new---------------0");
 			ProcessBuilder builder = new ProcessBuilder("bash", "-c", "logstash -f "+ configFileName);
-			
+			System.out.println("new---------------1" + builder);
 	        builder.redirectErrorStream(true);
 	        Process p = builder.start();
-	        
+	        System.out.println("new---------------2" + p);
 	        BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+	        System.out.println("new---------------3" + r);
 	        String line;
 	        
 	        while (true) {
 	            line = r.readLine();
-	           
+	            System.out.println("new---------------4" + line);
 	            if (line == null) { break; }
-	           
+	            System.out.println("new---------------5" + line);
 	            if(line.contains("Failed to execute"))
 	            {
+	            	System.out.println("new---------------err");
 	            	errorMessage = line;
 	            }
 	        }
 	        
 	        p.waitFor();
-	        System.out.println("command exit value::" + p.exitValue());
+        System.out.println("command exit value::" + p.exitValue());
 		}
 		catch(Exception ex)
 		{
@@ -78,7 +80,7 @@ public class LogStashUtil {
 	            	errorMessage = line;
 	            }
 	        }
-	        
+//	        p.waitFor();
 	        System.out.println("command exit value:::" + p.exitValue());
 		}
 		catch(Exception ex)
